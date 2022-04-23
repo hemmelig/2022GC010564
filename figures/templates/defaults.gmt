@@ -1,0 +1,18 @@
+#!/bin/bash
+# -----------------------------------------------
+# Boiler plate script that sets some defaults
+#
+# -----------------------------------------------
+
+# --- GMT settings ---
+gmt set PS_MEDIA 2500x2500
+gmt set PS_PAGE_ORIENTATION landscape
+gmt set PS_PAGE_COLOR White
+gmt set FONT_TITLE 16p, Helvetica
+gmt set FONT_ANNOT 12p, Helvetica
+gmt set FONT_LABEL 12p, Helvetica
+gmt set MAP_FRAME_TYPE plain
+gmt set MAP_FRAME_PEN 1.2p
+gmt set MAP_TICK_LENGTH 0.3c
+gmt set MAP_TICK_PEN_PRIMARY 0.75p
+gmt set FORMAT_GEO_MAP ddd.xx

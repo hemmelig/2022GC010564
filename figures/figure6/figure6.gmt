@@ -1,0 +1,102 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# This script produces supplementary Figure 6 of:
+#
+#       Lithospheric anisotropy characterises the post-subduction setting of
+#       northern Borneo: new results from XKS splitting analysis
+#       Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#       Cornwell, D.G., Tongkul, F.
+#
+# which has been submitted to Earth and Planetary Science Letters.
+# -----------------------------------------------------------------------------
+
+# --- i/o paths ---
+TEMPLATES=$PWD/../templates
+GMTDATA=$PWD/../gmt_datafiles
+DATA=$PWD/../data/radial_anisotropy
+out=$PWD/plots/figure6
+models=$DATA/models
+xis=$DATA/xi_values
+! [ -d plots ] && mkdir plots
+[ -e $out.ps ] && rm $out.ps
+
+# --- EZ GMT ---
+open="-K > $out.ps"
+add="-O -K >> $out.ps"
+close="-O >> $out.ps"
+
+bash $TEMPLATES/defaults.gmt
+gmt set FONT_ANNOT 10p, Helvetica
+gmt set FONT_LABEL 12p, Helvetica
+gmt set MAP_FRAME_PEN 0.6p
+gmt set MAP_TICK_LENGTH 0.12c
+
+gmt makecpt -Cvik -D -Iz -T-17/17/0.1 > sassy_vs.cpt
+
+bounds=2.5/5.5/-2/300
+proj=X9c/-13.5c
+
+# Add models
+awk -F "," 'FNR > 1 {print $2/1000,$1/1000}' $models/whole_area.csv | gmt psxy -R$bounds -J$proj -BsWNe -By50f25d+l"Depth b.s.l. / km" -Bx1f0.5d+l"Velocity / km s@+-1@+" -W2p,"#43a2ca" -Y20c $open
+awk -F "," 'FNR > 1 {print $3/1000,$1/1000}' $models/whole_area.csv | gmt psxy -R -J -W2p,"#b30000" $add
+awk -F "," 'FNR > 1 {print $2/1000,$1/1000}' $models/nw_box.csv | gmt psxy -R -J -W1p,"#43a2ca",- $add
+awk -F "," 'FNR > 1 {print $3/1000,$1/1000}' $models/nw_box.csv | gmt psxy -R -J -W1p,"#b30000",- $add
+awk -F "," 'FNR > 1 {print $2/1000,$1/1000}' $models/se_box.csv | gmt psxy -R -J -W1p,"#43a2ca",. $add
+awk -F "," 'FNR > 1 {print $3/1000,$1/1000}' $models/se_box.csv | gmt psxy -R -J -W1p,"#b30000",. $add
+
+# --- Add study key ---
+echo "2.8 280 -90 0.5" | gmt psxy -J -R -SV0.2c -L -W1p,"#b30000" $add
+echo "2.8 290 -90 0.5" | gmt psxy -J -R -SV0.2c -L -W1p,"#43a2ca" $add
+echo "2.85 280 VSH" | gmt pstext -J -R -F12p,"#b30000"+jML $add
+echo "2.85 290 VSV" | gmt pstext -J -R -F12p,"#43a2ca"+jML $add
+
+bounds=0.5/1.5/-2/300
+awk -F "," 'FNR > 1 {print $2,$1/1000}' $xis/whole_area.csv | gmt psxy -R$bounds -J$proj -BswNE -By50f25d+l"Depth b.s.l. / km" -Bx0.2f0.1d+l"Radial anisotropy, @~\170@~" -X10c -W1.5p,black $add
+awk -F "," 'FNR > 1 {print $2,$1/1000}' $xis/nw_box.csv | gmt psxy -R -J -W1.25p,black,- $add
+awk -F "," 'FNR > 1 {print $2,$1/1000}' $xis/se_box.csv | gmt psxy -R -J -W1.25p,black,. $add
+gmt psxy $models/isotropic_earth.txt -R -J -W1p,"#555555",- $add
+
+# --- Define plot region and projection ---
+region=114.9/119.5/4.1/7.25  # east/west/south/north
+proj=M19c
+gmt mapproject -R$region -J$proj -W > tmp
+read w h < tmp
+
+# --- Plot the LatLong coordinate system ---
+echo "Plotting Basemap..."
+gmt psbasemap -J$proj -R$region -Bxa1f0.5 -Bya1f0.5 -BSWne -X-10c -Y-$(echo "$h+1" | bc)c $add
+gmt grdimage -J -R $DATA/SASSY21_100km_radialanisotropy.grd -E400 -Q -Csassy_vs.cpt $add
+
+echo "Plotting 0m (coastline) contour..."
+gmt psxy $GMTDATA/xy/coastline.xy -J -R -W0.4p,black -L $add
+gmt psxy -J -R -L -W1p,black -O -K << EOF >> $out.ps
+115 4.2
+115 7.15
+119.4 7.15
+119.4 4.2
+EOF
+gmt psxy -J -R -L -W1p,black,- -O -K << EOF >> $out.ps
+115.02 4.22
+115.02 7.13
+118.5 7.13
+116.25 4.22
+EOF
+gmt psxy -J -R -L -W1p,black,. -O -K << EOF >> $out.ps
+119.38 4.22
+119.38 7.13
+118.5 7.13
+116.25 4.22
+EOF
+
+gmt psbasemap -J -R -Lx$(echo "$w-1.8" | bc)c/$(echo "$h-2.35" | bc)c+c6+w50k+lkm+jTR -F+p1p,black+gwhite+c1.5c/1.5c/0.25c/2.25c --MAP_TICK_PEN_PRIMARY=1.5p --FONT_ANNOT=10p,Helvetica $add
+gmt psbasemap -J -R -Bxa1f0.5 -Bya1f0.5 -BSWne $add
+gmt psscale -J -R -Dx$(echo "$w-2.75" | bc)c/$(echo "$h-1.25" | bc)c+jCM+w4c/0.3c+e+h+ml --MAP_TICK_LENGTH=0.1c -Csassy_vs.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica -Bpa5f2.5:"@~\170@~ (%)": $close
+
+# --- Convert file to png and pdf ---
+bash $TEMPLATES/convert2pdfpng.gmt $out
+
+# --- Remove temporary files ---
+echo "Removing temporary files..."
+rm gmt.* *.cpt tmp
+
+echo "Complete."

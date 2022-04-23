@@ -1,0 +1,11 @@
+#!/bin/bash
+# ----------------------------------------------
+# Boiler plate script that converts PDF to PNG
+#
+# ----------------------------------------------
+
+# --- Convert ps file to pdf and png ---
+echo "Converting ps to pdf and png..."
+gmt psconvert $1.ps -A -Tf
+pdftoppm $1.pdf $1 -png
+evince $1.pdf &

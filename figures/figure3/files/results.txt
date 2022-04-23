@@ -1,0 +1,9 @@
+phi	           68
+dt	0.92307692308
+min err_phi	           64
+max err_phi	           71
+min err_dt	0.82051282051
+max err_dt	 1.0256410256
+number of phases used	           64
+total energy reduction	 36.628577006
+confidence level	 5909004.6398
