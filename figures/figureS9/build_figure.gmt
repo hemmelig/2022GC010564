@@ -1,0 +1,146 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# This script produces supplementary Figure S9 of:
+#
+#       Lithospheric anisotropy characterises the post-subduction setting of
+#       northern Borneo: new results from XKS splitting analysis
+#       Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#       Cornwell, D.G., Tongkul, F.
+#
+# -----------------------------------------------------------------------------
+
+# --- i/o paths ---
+TEMPLATES=$PWD/../templates
+GMTDATA=$PWD/../gmt_datafiles
+DATA=$PWD/../data
+EQS=$DATA/earthquake_catalogues
+SPLITS=$DATA/splitting_results
+! [ -d plots ] && mkdir plots
+
+# --- Input information ---
+NAME=figureS9
+
+# --- GMT settings ---
+bash $TEMPLATES/defaults.gmt
+gmt set FONT_TITLE 18p, Helvetica
+gmt set MAP_TICK_LENGTH_PRIMARY 0.3c
+gmt set MAP_TICK_LENGTH_SECONDARY 0.15c
+gmt set MAP_TICK_PEN_SECONDARY 0.7p
+gmt set FORMAT_GEO_MAP ddd
+
+# --- Define plot region and projection ---
+rw=115.0; re=119.4; rs=4.2; rn=7.15
+region=$rw/$re/$rs/$rn
+proj=M25c
+gmt mapproject -R$region -J$proj -W > tmp
+read w h < tmp
+
+# --- The colour zone ---
+gmt makecpt -Cvik -D -Iz -T-17/17/0.1 > sassy_vs.cpt
+
+XUE="#7570b3"
+CAO="#d95f02"
+SONG="#1b9e77"
+
+echo "Building figure..."
+gmt begin plots/$NAME pdf
+
+    echo "...plotting basemap..."
+    gmt basemap -J$proj -R$region -Bxa1f0.5 -Bya1f0.5 -X6c -BSWne
+
+    echo "...adding depth to Moho layer..."
+    gmt grdimage $DATA/radial_anisotropy/SASSY21_100km_radialanisotropy.grd \
+        -E400 -Q -Csassy_vs.cpt
+
+    echo "...adding coastline..."
+    gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L
+
+    echo "...adding APM arrow..."
+    echo "118.75 5.85 APM" | gmt text -F+f12p,Helvetica-Bold,black+jML
+    echo "118.7 5.8 120 1.5" | gmt plot -SV0.6c+e -W3p,black -Gblack -L
+
+    echo "...adding shear-wave splitting results..."
+    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/xue2013.csv | gmt plot -SV0.2c -W3,$XUE -L
+    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/xue2013.csv | gmt plot -SV0.2c -W3,$XUE -L
+
+    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/cao2021.csv | gmt plot -SV0.2c -W3,$CAO -L
+    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/cao2021.csv | gmt plot -SV0.2c -W3,$CAO -L
+
+    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/song2021.csv | gmt plot -SV0.2c -W3,$SONG -L
+    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/song2021.csv | gmt plot -SV0.2c -W3,$SONG -L
+
+    awk '{if ($5 != "null") print $2,$3,$4,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L
+    awk '{if ($5 != "null") print $2,$3,$4+180,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L
+
+    awk '{if ($5 == "null") print $2,$3,$4,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
+    awk '{if ($5 == "null") print $2,$3,$4+180,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
+    awk '{if ($5 == "null") print $2,$3,$4+90,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
+    awk '{if ($5 == "null") print $2,$3,$4+270,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
+
+    echo "...adding colour scale..."
+    gmt basemap -JX15c/5c -R0/1/0/1 -Y$(echo "$h+0.5" | bc)c -Bswne+w1p,black@100
+    gmt psscale -Dx12.25c/1.8c+jCM+w4c/0.3c+e+h+ml --MAP_TICK_LENGTH=0.1c \
+        -Csassy_vs.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica \
+        -Bpa5f2.5+l"@~\170@~ (%)"
+
+    echo "...adding delay time scale bars to legend..."
+    echo "0.1 0.75 270 0.75" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.1 0.75 90 0.75" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.2 0.75 1.5s" | gmt text -F12p,black+jML
+    echo "0.1 0.55 270 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.1 0.55 90 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.2 0.55 1s" | gmt text -F12p,black+jML
+    echo "0.1 0.3 225 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.1 0.3 45 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.1 0.3 135 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.1 0.3 315 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.2 0.3 Null" | gmt text -F12p,black+jML
+
+    echo "...adding earthquake catalogue key to legend..."
+    echo "0.73 0.8" | gmt plot -Ss0.4c -Wthinnest,black@20 -G"#444444"
+    echo "0.78 0.8 2006-2020" | gmt text -F12p,black+jML
+    echo "0.73 0.65" | gmt plot -Sc0.3c -Wthinnest,black@20 -G"#cccccc"
+    echo "0.78 0.65 2018-2020" | gmt text -F12p,black+jML
+
+    echo "...adding study key to legend..."
+    echo "0.35 0.8 250 0.5" | gmt plot -SV0.2c -L -W3.5,$XUE
+    echo "0.35 0.8 70 0.5" | gmt plot -SV0.2c -L -W3.5,$XUE
+    echo "0.4 0.8 Xue et al. (2013)" | gmt text -F12p,black+jML
+
+    echo "0.35 0.6 250 0.5" | gmt plot -SV0.2c -L -W3.5,$SONG
+    echo "0.35 0.6 70 0.5" | gmt plot -SV0.2c -L -W3.5,$SONG
+    echo "0.4 0.6 Song et al. (2021)" | gmt text -F12p,black+jML
+
+    echo "0.35 0.4 250 0.5" | gmt plot -SV0.2c -L -W3.5,$CAO
+    echo "0.35 0.4 70 0.5" | gmt plot -SV0.2c -L -W3.5,$CAO
+    echo "0.4 0.4 Cao et al. (2021)" | gmt text -F12p,black+jML
+
+    echo "0.35 0.2 250 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.35 0.2 70 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.4 0.2 This study" | gmt text -F12p,black+jML
+
+    echo "...adding distance scale bar..."
+    gmt basemap -J$proj -R$region -Lx0c/0.5c+o12.25c/0.3c+c0+w50k+lkm+jCM \
+        --FONT_ANNOT=12p,Helvetica
+
+    echo "...final basemap..."
+    gmt basemap -Y-$(echo "$h+0.5" | bc)c -Bxa1df0.5d -Bya1df0.5d -BSWne
+
+    # --- Add the inset ---
+    echo "...adding inset..."
+    # --- Centre/horizon of projection ---
+    lon=117.; lat=6.; hrzn=180
+    gmt basemap -R0/360/-90/0 -JS0/-90/90/12c -X$(echo "$w-9.5" | bc)c \
+        -Y$(echo "$h-6.5" | bc)c -Bxa450
+    gmt coast -Rg -JE$lon/$lat/$hrzn/12c -Dc -G100/100/100@80
+    awk '{print $3,$2,$5}' $EQS/supp_file_4_2006-2020_earthquakes.csv | gmt plot -Rg \
+        -Ss0.2 -Wthinnest,black@20 -G"#444444"
+    awk '{print $3,$2,$5}' $EQS/supp_file_3_2018-2020_earthquakes.csv | gmt plot -Rg \
+        -Sc0.15 -Wthinnest,black@20 -G"#cccccc"
+    gmt basemap -R0/360/-90/0 -JE0/-90/$hrzn/12c -Bxa450
+gmt end show
+
+echo "...removing temporary files..."
+rm tmp *.cpt gmt.*
+
+echo "Complete."
