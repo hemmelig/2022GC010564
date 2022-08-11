@@ -8,8 +8,6 @@ Specifically, this script can be used to generate supplemental Figure S5 of:
     Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
     Cornwell, D.G., Tongkul, F.
 
-which has been submitted to Earth and Planetary Science Letters.
-
 """
 
 import pathlib
