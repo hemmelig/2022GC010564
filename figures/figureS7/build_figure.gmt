@@ -1,6 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# This script produces supplementary Figure 4 of:
+# This script produces supplementary Figure S7 of:
 #
 #       Lithospheric anisotropy characterises the post-subduction setting of
 #       northern Borneo: new results from XKS splitting analysis
@@ -18,7 +18,7 @@ SPLITS=$DATA/splitting_results
 ! [ -d plots ] && mkdir plots
 
 # --- Input information ---
-NAME=figure4
+NAME=figureS7
 
 # --- GMT settings ---
 bash $TEMPLATES/defaults.gmt
@@ -36,11 +36,17 @@ gmt mapproject -R$region -J$proj -W > tmp
 read w h < tmp
 
 # --- The colour zone ---
-gmt makecpt -Cvik -D -Iz -T40/160/10 > lab.cpt
+gmt makecpt -T20/50/5 -C$GMTDATA/cpt/CET-D01A.cpt -D -Z -I > moho.cpt
 
 XUE="#7570b3"
 CAO="#d95f02"
 SONG="#1b9e77"
+
+echo "Converting VDSS measurements to interpolated .grd file..."
+awk '{print($3,$4,$5)}' $DATA/vdss_model/mohodepth_vdss.xy | gmt blockmean -R$region \
+    -I35k > nboss_10x10.xyg
+gmt surface nboss_10x10.xyg -R -I0.04 -Tb0 -Gdisp.grd
+gmt grdsample disp.grd -R -Gmoho_plot.grd -I500e -T -nc
 
 echo "Building figure..."
 gmt begin plots/$NAME pdf
@@ -54,11 +60,11 @@ gmt begin plots/$NAME pdf
     115 7.15
 EOF
 
-    echo "...adding landshading..."
-    gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L -G"#e5f5e0"
-
-    echo "...adding LAB thickness layer..."
-    gmt grdimage $GMTDATA/grd/thickness_LAB.grd -E400 -Q -Clab.cpt
+    echo "...adding depth to Moho layer..."
+    gmt clip $DATA/vdss_model/nboss_clip_bb.xy
+        gmt grdimage moho_plot.grd -Cmoho.cpt -E150
+        gmt grdcontour moho_plot.grd -Cmoho.cpt -A2+f12p,Helvetica -W1,black
+    gmt clip -C
 
     echo "...adding coastline..."
     gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L
@@ -88,8 +94,8 @@ EOF
     echo "...adding colour scale..."
     gmt basemap -JX15c/5c -R0/1/0/1 -Y$(echo "$h+0.5" | bc)c -Bswne+w1p,black@100
     gmt psscale -Dx12.25c/1.8c+jCM+w4c/0.3c+e+h+ml --MAP_TICK_LENGTH=0.1c \
-        -Clab.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica \
-        -Bpa25f12.5+l"LAB depth (km)"
+        -Cmoho.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica \
+        -Bpa5f1+l"Moho depth (km)"
 
     echo "...adding delay time scale bars to legend..."
     echo "0.1 0.75 270 0.75" | gmt plot -SV0.2c -L -W3.5,black
@@ -149,6 +155,6 @@ EOF
 gmt end show
 
 echo "...removing temporary files..."
-rm tmp *.cpt gmt.*
+rm tmp *.cpt gmt.* *.grd *.xyg
 
 echo "Complete."
