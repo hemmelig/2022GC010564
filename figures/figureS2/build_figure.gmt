@@ -1,0 +1,83 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# This script produces supplementary Figure S2 of:
+#
+#       Lithospheric anisotropy characterises the post-subduction setting of
+#       northern Borneo: new results from XKS splitting analysis
+#       Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#       Cornwell, D.G., Tongkul, F.
+#
+# -----------------------------------------------------------------------------
+
+# --- i/o paths ---
+TEMPLATES=$PWD/../templates
+GMTDATA=$PWD/../gmt_datafiles
+STATIONS=$PWD/../data/station_files
+! [ -d plots ] && mkdir plots
+
+# --- Input information ---
+NAME=figureS2
+
+# --- GMT settings ---
+bash $TEMPLATES/defaults.gmt
+gmt set FONT_TITLE 18p, Helvetica
+gmt set MAP_TICK_LENGTH_PRIMARY 0.3c
+gmt set MAP_TICK_LENGTH_SECONDARY 0.15c
+gmt set MAP_TICK_PEN_SECONDARY 0.7p
+gmt set FORMAT_GEO_MAP ddd
+
+# --- Define plot region and projection ---
+rw=115.0; re=119.4; rs=4.2; rn=7.15
+region=115.0/119.4/4.2/7.15  # west/east/south/north
+region=$rw/$re/$rs/$rn
+proj=M25c
+gmt mapproject -R$region -J$proj -W > tmp
+read w h < tmp
+
+# --- The colour zone ---
+station_clr1="#e7298a"
+station_clr2="255/137/86"
+station_clr3="163/234/255"
+
+echo "Building figure..."
+gmt begin plots/$NAME pdf
+
+    echo "...plotting 0m (coastline) contour..."
+    gmt psxy $GMTDATA/xy/coastline.xy -J$proj -R$region -W0.4p,black -X6c -L
+
+    echo "...plotting seismic stations..."
+    awk -F ',' '{print ($4,$3)}' $STATIONS/supp_file_2_MY.sta | gmt plot -Ss0.4 \
+        -Wthinner -G$station_clr1
+    awk -F ',' '{print ($4,$3,$2)}' $STATIONS/supp_file_2_MY.sta | gmt text \
+        -D0.0/-0.35 -F+f9p,Helvetica-Bold,$station_clr1
+    awk -F ',' '$6 ~ /3ESP/ {print $4,$3}' $STATIONS/supp_file_1_YC.sta | gmt plot -St0.5 \
+        -Wthinner -G$station_clr2
+    awk -F ',' '$6 ~ /3ESP/ {print ($4,$3,$2)}' $STATIONS/supp_file_1_YC.sta | gmt text \
+        -D0.0/0.4 -F+f9p,Helvetica-Bold,$station_clr2 $add
+    awk -F ',' '$6 ~ /6TD/ {print $4,$3}' $STATIONS/supp_file_1_YC.sta | gmt plot \
+        -St0.5 -Wthinner -G$station_clr3
+    awk -F ',' '$6 ~ /6TD/ {print ($4,$3,$2)}' $STATIONS/supp_file_1_YC.sta | gmt text \
+        -D0.0/0.4 -F+f9p,Helvetica-Bold,black
+
+    echo "...adding legend..."
+    cat <<- EOF | gmt pslegend -Dx0.2c/$(echo "$h-0.2" | bc)c+w4.2c/3.4c+jTL+l1.2 -F+gwhite+pthin --FONT_ANNOT=10p,Helvetica
+G 0.15c
+S 0.4c s 0.35c 174/163/255 thinnest,black 1.2c 120 s instrument
+G 0.15c
+S 0.4c t 0.4c 255/137/86 thinnest,black 1.2c 60 s instrument
+G 0.15c
+S 0.4c t 0.4c 163/234/255 thinnest,black 1.2c 30 s instrument
+N 1
+EOF
+
+    echo "...final basemap..."
+    gmt basemap -Bswne -Ln$(echo "2.3/$w" | bc -l)/0.83+jCM+c6+w50k \
+        --FONT_ANNOT_PRIMARY=10p,Helvetica
+    gmt basemap -Bxa1f0.5 -Bya1f0.5 -BSWne
+gmt end show
+
+# --- Remove temporary files ---
+echo "Removing temporary files..."
+rm tmp gmt.*
+
+echo "Complete."
