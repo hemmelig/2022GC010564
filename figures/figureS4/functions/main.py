@@ -16,9 +16,9 @@ import obspy
 import pandas as pd
 
 try:
-    plt.style.use("splitracer_summary")
+    plt.style.use("2022GC010564")
 except OSError:
-    warnings.warn("You have not added the 'splitracer_summary.mplstyle' stylesheet to your"
+    warnings.warn("You have not added the '2022GC010564.mplstyle' stylesheet to your"
                   " matplotlib config - continuing with matplotlib defaults.")
 mpl.rcParams["font.family"] = "Helvetica"
 

@@ -23,7 +23,7 @@ cd 2022GC010564
 conda env create
 ```
 
-3. Add `splitracer_summary.mplstyle` and `publication.mplstyle` (matplotlib stylesheets) to your `mpl_configdir` (usually found at `~/.config/matplotlib`)
+3. Add `2022GC010564.mplstyle` (a matplotlib stylesheets) to your `mpl_configdir` (usually found at `~/.config/matplotlib`)
 
 4. Optional: Install Helvetica font for Matplotlib
 

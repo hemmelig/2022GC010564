@@ -18,7 +18,7 @@ from scipy.stats import pearsonr
 import pandas as pd
 
 
-plt.style.use("publication")
+plt.style.use("2022GC010564")
 mpl.rcParams["font.family"] = "Helvetica"
 
 cmd = (

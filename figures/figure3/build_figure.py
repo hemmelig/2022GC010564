@@ -22,7 +22,7 @@ import pandas as pd
 import functions as fig3_utils
 
 try:
-    plt.style.use("publication")
+    plt.style.use("2022GC010564")
 except OSError:
     warnings.warn("You have not added the 'publication.mplstyle' stylesheet to your"
                   " matplotlib config - continuing with matplotlib defaults.")
