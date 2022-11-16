@@ -2,10 +2,11 @@
 # -----------------------------------------------------------------------------
 # This script produces supplementary Figure S9 of:
 #
-#       Lithospheric anisotropy characterises the post-subduction setting of
-#       northern Borneo: new results from XKS splitting analysis
-#       Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
-#       Cornwell, D.G., Tongkul, F.
+#        Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#        Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+#        anisotropy at post-subduction continental margins: New insight from
+#        XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+#        Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
 #
 # -----------------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ gmt begin plots/$NAME pdf
     echo "...plotting basemap..."
     gmt basemap -J$proj -R$region -Bxa1f0.5 -Bya1f0.5 -X6c -BSWne
 
-    echo "...adding depth to Moho layer..."
+    echo "...adding radial anisotropy model..."
     gmt grdimage $DATA/radial_anisotropy/SASSY21_100km_radialanisotropy.grd \
         -E400 -Q -Csassy_vs.cpt
 

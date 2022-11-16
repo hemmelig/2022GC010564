@@ -1,6 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# This script produces Figure 4 of:
+# This script produces supplementary Figure S12 of:
 #
 #        Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
 #        Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
@@ -19,7 +19,12 @@ SPLITS=$DATA/splitting_results
 ! [ -d plots ] && mkdir plots
 
 # --- Input information ---
-NAME=figure4
+NAME=figureS12
+measurements=$PWD/measurements_with_pierce_points.csv
+awk -F "," '{if ($21 == "good") {print $23,$24,$11,$11,$12*10,1.8}}' $measurements > good.in
+awk -F "," '{if ($21 == "average") {print $23,$24,$11,$11,$12*10,0.8}}' $measurements> fair.in
+awk -F "," '{if ($21 == "null-measurement") {print $23,$24,$11,10,0.5,0.1}}' $measurements > null1.in
+awk -F "," '{if ($21 == "null-measurement") {print $23,$24,$11+90,10,0.5}}' $measurements > null2.in
 
 # --- GMT settings ---
 bash $TEMPLATES/defaults.gmt
@@ -37,7 +42,8 @@ gmt mapproject -R$region -J$proj -W > tmp
 read w h < tmp
 
 # --- The colour zone ---
-gmt makecpt -Cvik -D -Iz -T40/160/10 > lab.cpt
+# gmt makecpt -Cvik -D -Iz -T-0.5/0.5/0.01 > vp_tomo.cpt
+gmt makecpt -Cvik -T-90/90/10 -D > orientation.cpt
 
 XUE="#7570b3"
 CAO="#d95f02"
@@ -48,18 +54,10 @@ gmt begin plots/$NAME pdf
 
     echo "...plotting basemap..."
     gmt basemap -J$proj -R$region -Bxa1f0.5 -Bya1f0.5 -X6c -BSWne
-    cat <<- EOF | gmt plot -L -G"#e0ecf4"
-    115 4.2
-    119.4 4.2
-    119.4 7.15
-    115 7.15
-EOF
 
-    echo "...adding landshading..."
-    gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L -G"#e5f5e0"
-
-    echo "...adding LAB thickness layer..."
-    gmt grdimage $GMTDATA/grd/thickness_LAB.grd -E400 -Q -Clab.cpt
+    # echo "...adding Vp tomography slice layer..."
+    # gmt grdimage $DATA/traveltime_tomography/nBOSS_3D_P_depth$1km.grd \
+    #     -E400 -Q -Cvp_tomo.cpt
 
     echo "...adding coastline..."
     gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L
@@ -69,28 +67,16 @@ EOF
     echo "118.7 5.8 120 1.5" | gmt plot -SV0.6c+e -W3p,black -Gblack -L
 
     echo "...adding shear-wave splitting results..."
-    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/xue2013.csv | gmt plot -SV0.2c -W3,$XUE -L
-    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/xue2013.csv | gmt plot -SV0.2c -W3,$XUE -L
-
-    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/cao2021.csv | gmt plot -SV0.2c -W3,$CAO -L
-    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/cao2021.csv | gmt plot -SV0.2c -W3,$CAO -L
-
-    awk -F "," '{print $2,$3,$4,$5*0.5}' $SPLITS/song2021.csv | gmt plot -SV0.2c -W3,$SONG -L
-    awk -F "," '{print $2,$3,$4+180,$5*0.5}' $SPLITS/song2021.csv | gmt plot -SV0.2c -W3,$SONG -L
-
-    awk '{if ($5 != "null") print $2,$3,$4,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L
-    awk '{if ($5 != "null") print $2,$3,$4+180,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L
-
-    awk '{if ($5 == "null") print $2,$3,$4,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
-    awk '{if ($5 == "null") print $2,$3,$4+180,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
-    awk '{if ($5 == "null") print $2,$3,$4+90,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
-    awk '{if ($5 == "null") print $2,$3,$4+270,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L
+    gmt plot good.in -SJ -Corientation.cpt
+    gmt plot fair.in -SJ -Corientation.cpt
+    gmt plot null1.in -SJ -Gblack
+    gmt plot null2.in -SJ -Gblack
 
     echo "...adding colour scale..."
     gmt basemap -JX15c/5c -R0/1/0/1 -Y$(echo "$h+0.5" | bc)c -Bswne+w1p,black@100
-    gmt psscale -Dx12.25c/1.8c+jCM+w4c/0.3c+e+h+ml --MAP_TICK_LENGTH=0.1c \
-        -Clab.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica \
-        -Bpa25f12.5+l"LAB depth (km)"
+    gmt psscale -Dx7c/1.9c+jCM+w4c/0.3c+e+h+ml --MAP_TICK_LENGTH=0.1c \
+        -Corientation.cpt --FONT_ANNOT=9p,Helvetica --FONT_LABEL=10p,Helvetica \
+        -Bpa30f15+l"@[\phi, ^{\circ}@["
 
     echo "...adding delay time scale bars to legend..."
     echo "0.1 0.75 270 0.75" | gmt plot -SV0.2c -L -W3.5,black
@@ -106,30 +92,13 @@ EOF
     echo "0.2 0.3 Null" | gmt text -F12p,black+jML
 
     echo "...adding earthquake catalogue key to legend..."
-    echo "0.73 0.8" | gmt plot -Ss0.4c -Wthinnest,black@20 -G"#444444"
-    echo "0.78 0.8 2006-2020" | gmt text -F12p,black+jML
-    echo "0.73 0.65" | gmt plot -Sc0.3c -Wthinnest,black@20 -G"#cccccc"
-    echo "0.78 0.65 2018-2020" | gmt text -F12p,black+jML
-
-    echo "...adding study key to legend..."
-    echo "0.35 0.8 250 0.5" | gmt plot -SV0.2c -L -W3.5,$XUE
-    echo "0.35 0.8 70 0.5" | gmt plot -SV0.2c -L -W3.5,$XUE
-    echo "0.4 0.8 Xue et al. (2013)" | gmt text -F12p,black+jML
-
-    echo "0.35 0.6 250 0.5" | gmt plot -SV0.2c -L -W3.5,$SONG
-    echo "0.35 0.6 70 0.5" | gmt plot -SV0.2c -L -W3.5,$SONG
-    echo "0.4 0.6 Song et al. (2021)" | gmt text -F12p,black+jML
-
-    echo "0.35 0.4 250 0.5" | gmt plot -SV0.2c -L -W3.5,$CAO
-    echo "0.35 0.4 70 0.5" | gmt plot -SV0.2c -L -W3.5,$CAO
-    echo "0.4 0.4 Cao et al. (2021)" | gmt text -F12p,black+jML
-
-    echo "0.35 0.2 250 0.5" | gmt plot -SV0.2c -L -W3.5,black
-    echo "0.35 0.2 70 0.5" | gmt plot -SV0.2c -L -W3.5,black
-    echo "0.4 0.2 This study" | gmt text -F12p,black+jML
+    echo "0.38 0.8" | gmt plot -Ss0.4c -Wthinnest,black@20 -G"#444444"
+    echo "0.43 0.8 2006-2020" | gmt text -F12p,black+jML
+    echo "0.38 0.65" | gmt plot -Sc0.3c -Wthinnest,black@20 -G"#cccccc"
+    echo "0.43 0.65 2018-2020" | gmt text -F12p,black+jML
 
     echo "...adding distance scale bar..."
-    gmt basemap -J$proj -R$region -Lx0c/0.5c+o12.25c/0.3c+c0+w50k+lkm+jCM \
+    gmt basemap -J$proj -R$region -Lx0c/0.5c+o7c/0.3c+c0+w50k+lkm+jCM \
         --FONT_ANNOT=12p,Helvetica
 
     echo "...final basemap..."
@@ -150,6 +119,6 @@ EOF
 gmt end show
 
 echo "...removing temporary files..."
-rm tmp *.cpt gmt.*
+rm tmp *.cpt gmt.* *.in
 
 echo "Complete."

@@ -3,10 +3,11 @@
 This script will create a summary figure for an example splitting measurement
 Specifically, this script can be used to generate supplemental Figure S5 of:
 
-    Lithospheric anisotropy characterises the post-subduction setting of
-    northern Borneo: new results from XKS splitting analysis
-    Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
-    Cornwell, D.G., Tongkul, F.
+    Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+    Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+    anisotropy at post-subduction continental margins: New insight from
+    XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+    Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
 
 """
 

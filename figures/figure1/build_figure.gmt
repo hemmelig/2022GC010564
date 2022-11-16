@@ -1,0 +1,131 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# This script produces Figure 1 of:
+#
+#        Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#        Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+#        anisotropy at post-subduction continental margins: New insight from
+#        XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+#        Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
+#
+# -----------------------------------------------------------------------------
+
+# --- i/o paths ---
+TEMPLATES=$PWD/../templates
+GMTDATA=$PWD/../gmt_datafiles
+STATIONS=$PWD/../data/station_files
+! [ -d plots ] && mkdir plots
+
+# --- Input information ---
+NAME=figure1
+
+# --- GMT settings ---
+bash $TEMPLATES/defaults.gmt
+gmt set FONT_TITLE 18p, Helvetica
+gmt set MAP_TICK_LENGTH_PRIMARY 0.3c
+gmt set MAP_TICK_LENGTH_SECONDARY 0.15c
+gmt set MAP_TICK_PEN_SECONDARY 0.7p
+gmt set FORMAT_GEO_MAP ddd
+
+# --- Define plot region and projection ---
+rw=113.5; re=120; rs=4.0; rn=8.5
+region=$rw/$re/$rs/$rn
+proj=M25c
+gmt mapproject -R$region -J$proj -W > tmp
+read w h < tmp
+
+# --- The colour zone ---
+gmt makecpt -T-3000/3130/250 -Coleron > topo.cpt
+station_clr1="#e7298a"
+station_clr2="255/137/86"
+station_clr3="163/234/255"
+
+echo "Building figure..."
+gmt begin plots/$NAME pdf
+    echo "...plotting DEM..."
+    gmt grdimage -J$proj -R$region $GMTDATA/grd/borneo_03s.grd \
+        -I$GMTDATA/grd/borneo_03sI.grd -Ctopo.cpt -X6c
+
+    echo "...adding geological features..."
+    gmt clip $GMTDATA/xy/unit9_kinabalu_granite.xy -N
+    gmt plot $GMTDATA/xy/peridotites.xy -W0.5p,black -L -G#2c7fb8@30
+    gmt clip -C
+    gmt plot $GMTDATA/xy/unit9_kinabalu_granite.xy -W0.5p,black -L -G#b00f0f@30
+    gmt plot $GMTDATA/xy/telupid_ophiolites.xy -W0.5p,black -L -G#5d056f@30
+    gmt plot $GMTDATA/xy/crystalline_basement.xy -W0.5p,black -L -G#d95f0e@30
+    gmt plot $GMTDATA/xy/western_cordillera.xy -W0.9p,white,- -L
+
+    echo "...plotting seismic stations..."
+    awk -F ',' '{print ($4,$3)}' $STATIONS/supp_file_2_MY.sta | gmt plot -Ss0.35 \
+        -Wthinner -G$station_clr1
+    awk -F ',' '$6 ~ /3ESP/ {print $4,$3}' $STATIONS/supp_file_1_YC.sta | gmt plot -St0.4 \
+        -Wthinner -G$station_clr2
+    awk -F ',' '$6 ~ /6TD/ {print $4,$3}' $STATIONS/supp_file_1_YC.sta | gmt plot -St0.4 \
+        -Wthinner -G$station_clr3
+
+    echo "...adding legend..."
+    cat <<- EOF | gmt pslegend -Dx0.2c/$(echo "$h-0.2" | bc)c+w4c/4.4c+jTL+l1.2 -F+gwhite+pthin --FONT_ANNOT=8p,Helvetica
+G 0.15c
+S 0.55c s 0.35c $station_clr1 thinnest,black 1.2c 120 s instrument
+G 0.15c
+S 0.55c t 0.4c $station_clr2 thinnest,black 1.2c 60 s instrument
+G 0.15c
+S 0.55c t 0.4c $station_clr3 thinnest,black 1.2c 30 s instrument
+G 1.35c
+N 1
+EOF
+
+    echo "...adding labels..."
+    fstring1=+f14p,Helvetica-Oblique,white
+    fstring2=+f10p,Helvetica-Oblique,white
+    fstring3=$fstring2,=1.5p,black
+    fstring4=+f10p,Helvetica-Oblique,black
+    fstring5=$fstring4,=1.5p,white
+    echo "114.15 6.5 North-West Borneo Trough" | gmt text -F$fstring1+a43+jLM
+    echo "119.2 6.6 Sulu Sea" | gmt text -F$fstring1+jLM
+    echo "119.16 4.15 Celebes Sea" | gmt text -F$fstring1+jLM
+    echo "116.12 5.4 Crocker Range" | gmt text -F$fstring3+a55+jLM
+    echo "116.12 5.4 Crocker Range" | gmt text -F$fstring2+a55+jLM
+    echo "116.2147 5.95 KKM" | gmt text -F+f10p,Helvetica-Bold,white,=1.5p,black+jCM
+    echo "116.2147 5.95 KKM" | gmt text -F+f10p,Helvetica-Bold,white+jCM
+    echo "118.5 4.8 Darvel Bay" | gmt text -F$fstring5+jLM
+    echo "118.5 4.8 Darvel Bay" | gmt text -F$fstring4+jLM
+    echo "116.9 8.35 Palawan" | gmt text -F$fstring5+jCM
+    echo "116.9 8.35 Palawan" | gmt text -F$fstring4+jCM
+    echo "118 4.6 Semporna Peninsula" | gmt text -F$fstring3+a-13+jCM
+    echo "118 4.6 Semporna Peninsula" | gmt text -F$fstring2+a-13+jCM
+    echo "116.67 6.18 Mount Kinabalu" | gmt text -F$fstring3+jLM
+    echo "116.67 6.18 Mount Kinabalu" | gmt text -F$fstring2+jLM
+    echo "116.67 5 Maliau Basin" | gmt text -F$fstring3+jLM
+    echo "116.67 5 Maliau Basin" | gmt text -F$fstring2+jLM
+
+    echo "...adding scalebar..."
+    gmt psscale -Dx2.2c/$(echo "$h-2.75" | bc)c+jCM+w2.6c/0.15c+e+h+ml \
+        --MAP_TICK_LENGTH=0.1c -Ctopo.cpt --FONT_ANNOT=8p,Helvetica \
+        --FONT_LABEL=8p,Helvetica -Ba3000f500+l"Elevation (m)"
+
+    echo "...final basemap..."
+    gmt basemap -Bswne -Ln$(echo "2.2/$w" | bc -l)/0.78+jCM+c6+w100k \
+        --FONT_ANNOT_PRIMARY=10p,Helvetica
+    gmt basemap -Bxa1f0.5 -Bya1f0.5 -BSWne
+
+    echo "...plotting inset map..."
+    gmt coast -Rg -JG115/6/25/8c -Df -S188/230/255 -Ggrey -A5000 -Bxa15 -Bya10 \
+        --FONT_ANNOT=10p,Helvetica --MAP_TICK_LENGTH=-0.1c \
+        --MAP_ANNOT_OFFSET_PRIMARY=-0.1c -BSWne -Wfaint \
+        -X18.5c -Y$(echo "$h-6.5" | bc -l)c
+    echo "114 0.5 Borneo" | gmt text -F$fstring3+jCM
+    echo "114 0.5 Borneo" | gmt text -F$fstring2+jCM
+    cat <<- EOF | gmt plot -W1.5p,black
+    $re $rs
+    $re $rn
+    $rw $rn
+    $rw $rs
+    $re $rs
+EOF
+gmt end show
+
+echo "...removing temporary files..."
+rm tmp gmt.* *.cpt
+
+echo "Complete."

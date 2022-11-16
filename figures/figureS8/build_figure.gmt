@@ -2,10 +2,11 @@
 # -----------------------------------------------------------------------------
 # This script produces supplementary Figure S8 of:
 #
-#       Lithospheric anisotropy characterises the post-subduction setting of
-#       northern Borneo: new results from XKS splitting analysis
-#       Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
-#       Cornwell, D.G., Tongkul, F.
+#        Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#        Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+#        anisotropy at post-subduction continental margins: New insight from
+#        XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+#        Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
 #
 # -----------------------------------------------------------------------------
 
@@ -42,25 +43,17 @@ XUE="#7570b3"
 CAO="#d95f02"
 SONG="#1b9e77"
 
-
 echo "Converting RF measurements to interpolated .grd file..."
 awk '{if ($3 != 999) print $1,$2,$3}' $DATA/rf_model/MY_YC_combined.moho | gmt blockmean -R$region \
     -I35k > nboss_10x10.xyg
 gmt surface nboss_10x10.xyg -R -I0.04 -Tb0 -Gdisp.grd
 gmt grdsample disp.grd -R -Gmoho_plot.grd -I500e -T -nc
 
-
 echo "Building figure..."
 gmt begin plots/$NAME pdf
 
     echo "...plotting basemap..."
     gmt basemap -J$proj -R$region -Bxa1f0.5 -Bya1f0.5 -X6c -BSWne
-    cat <<- EOF | gmt plot -L -G"#e0ecf4"
-    115 4.2
-    119.4 4.2
-    119.4 7.15
-    115 7.15
-EOF
 
     echo "...adding depth to Moho layer..."
     gmt grdimage moho_plot.grd -Cmoho.cpt -E150

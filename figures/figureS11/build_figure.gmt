@@ -1,0 +1,114 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# This script produces supplementary Figure S11 of:
+#
+#        Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+#        Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+#        anisotropy at post-subduction continental margins: New insight from
+#        XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+#        Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
+#
+# -----------------------------------------------------------------------------
+
+# --- i/o paths ---
+TEMPLATES=$PWD/../templates
+GMTDATA=$PWD/../gmt_datafiles
+DATA=$PWD/../data
+EQS=$DATA/earthquake_catalogues
+SPLITS=$DATA/splitting_results
+! [ -d plots ] && mkdir plots
+
+# --- Input information ---
+NAME=figureS11
+
+# --- GMT settings ---
+bash $TEMPLATES/defaults.gmt
+gmt set FONT_TITLE 18p, Helvetica
+gmt set FONT_ANNOT 18p, Helvetica
+gmt set MAP_TICK_LENGTH_PRIMARY 0.3c
+gmt set MAP_TICK_LENGTH_SECONDARY 0.15c
+gmt set MAP_TICK_PEN_SECONDARY 0.7p
+gmt set FORMAT_GEO_MAP ddd
+
+# --- Define plot region and projection ---
+rw=115.0; re=119.4; rs=4.2; rn=7.15
+region=$rw/$re/$rs/$rn
+proj=M25c
+gmt mapproject -R$region -J$proj -W > tmp
+read w h < tmp
+
+# --- The colour zone ---
+gmt makecpt -Cvik -D -Iz -T-0.5/0.5/0.01 > vp_tomo.cpt
+
+plot_slice () {
+
+    pos="-Xa$2 -Ya$3"
+
+    echo "...plotting basemap..."
+    gmt basemap -J$proj -R$region $pos -BSWne
+
+    echo "...adding Vp tomography slice layer..."
+    gmt grdimage $DATA/traveltime_tomography/nBOSS_3D_P_depth$1km.grd $pos \
+        -E400 -Q -Cvp_tomo.cpt
+
+    echo "...adding coastline..."
+    gmt plot $GMTDATA/xy/coastline.xy -W0.4p,black -L $pos
+
+    echo "...adding APM arrow..."
+    echo "118.75 5.85 APM" | gmt text -F+f12p,Helvetica-Bold,black+jML $pos
+    echo "118.7 5.8 120 1.5" | gmt plot -SV0.6c+e -W3p,black -Gblack -L $pos
+
+    echo "...adding shear-wave splitting results..."
+    awk '{if ($5 != "null") print $2,$3,$4,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L $pos
+    awk '{if ($5 != "null") print $2,$3,$4+180,$5*0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W3,black -L $pos
+
+    awk '{if ($5 == "null") print $2,$3,$4,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L $pos
+    awk '{if ($5 == "null") print $2,$3,$4+180,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L $pos
+    awk '{if ($5 == "null") print $2,$3,$4+90,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L $pos
+    awk '{if ($5 == "null") print $2,$3,$4+270,0.5}' $SPLITS/supp_file_7_1layer_averages.tab | gmt plot -SV0.2c -W1,black -L $pos
+
+    echo "115.2 6.95 ${1} km" | gmt text -F+f22p,Helvetica-Bold,black+jML $pos
+
+    echo "...final basemap..."
+    gmt basemap $pos -Bxa1df0.5d -Bya1df0.5d -BSWne
+
+}
+
+echo "Building figure..."
+gmt begin plots/$NAME pdf
+
+    plot_slice 75 1 38
+    plot_slice 105 28 38
+    plot_slice 150 1 20
+    plot_slice 210 28 20
+    plot_slice 255 1 2
+
+    echo "...adding colour scale..."
+    gmt basemap -JX25c/${h}c -R0/1/0/1 -X$(echo "$w+3" | bc)c -Y2c -Bswne+w1p,black@100
+    gmt psscale -Dx12.25c/7c+jCM+w10c/1c+e+h+ml --MAP_TICK_LENGTH=0.1c \
+        -Cvp_tomo.cpt --FONT_ANNOT=15p,Helvetica --FONT_LABEL=16p,Helvetica \
+        -Bpa0.25f0.125+l"dVp (km/s)"
+
+    echo "...adding delay time scale bars to legend..."
+    echo "0.2 0.6 270 0.75" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.2 0.6 90 0.75" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.28 0.6 1.5s" | gmt text -F18p,black+jML
+    echo "0.45 0.6 270 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.45 0.6 90 0.5" | gmt plot -SV0.2c -L -W3.5,black
+    echo "0.53 0.6 1s" | gmt text -F18p,black+jML
+    echo "0.7 0.6 225 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.7 0.6 45 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.7 0.6 135 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.7 0.6 315 0.75" | gmt plot -SV0.2c -L -W1,black
+    echo "0.78 0.6 Null" | gmt text -F18p,black+jML
+
+    echo "...adding distance scale bar..."
+    gmt basemap -J$proj -R$region -Lx0c/0.5c+o12.25c/3c+c0+w100k+lkm+jCM \
+        --FONT_ANNOT=18p,Helvetica
+
+gmt end show
+
+echo "...removing temporary files..."
+rm tmp *.cpt gmt.*
+
+echo "Complete."

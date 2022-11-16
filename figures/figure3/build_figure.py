@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-This script will create a summary figure for an example splitting measurement
-Specifically, this script can be used to generate supplemental Figure S5 of:
+This script can be used to generate Figure 3 of:
 
-    Lithospheric anisotropy characterises the post-subduction setting of
-    northern Borneo: new results from XKS splitting analysis
-    Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
-    Cornwell, D.G., Tongkul, F.
-
-which has been submitted to Earth and Planetary Science Letters.
+    Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+    Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+    anisotropy at post-subduction continental margins: New insight from
+    XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+    Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
 
 """
 
@@ -24,9 +22,9 @@ import pandas as pd
 import functions as fig3_utils
 
 try:
-    plt.style.use("splitracer_summary")
+    plt.style.use("publication")
 except OSError:
-    warnings.warn("You have not added the 'splitracer_summary.mplstyle' stylesheet to your"
+    warnings.warn("You have not added the 'publication.mplstyle' stylesheet to your"
                   " matplotlib config - continuing with matplotlib defaults.")
 mpl.rcParams["font.family"] = "Helvetica"
 
@@ -80,22 +78,82 @@ ax_dict = fig.subplot_mosaic(
     """
 )
 
+# ---------------
+# --- PANEL A ---
+# ---------------
 ax = ax_dict["A"]
-ax.pcolormesh(X, Y, Z, edgecolors="face", cmap="inferno_r", shading="gouraud")
 
+# --- Plot data ---
+ax.pcolormesh(X, Y, Z, edgecolors="face", cmap="inferno_r", shading="gouraud")
 ax.contour(X, Y, Z, 9, colors="#cccccc")
 ax.contour(X, Y, Z, [conf_level,], colors="k")
 ax.scatter(dt, phi, marker="+", s=200, label="Best-fitting (\u03C6, \u03B4t)")
 
-ax.set_ylabel("\u03C6, °")
+# --- Configure axes and other panel details ---
 ax.set_xlabel("Delay time, s")
 plt.xlim([0, 4])
+
+ax.set_ylabel("\u03C6, °")
 plt.ylim([-90, 90])
 ytickrange = np.arange(-90, 91, 15)
 ax.set_yticks(ytickrange)
 ax.set_yticklabels(ytickrange)
 
+# --- Add panel label ---
+ax.text(
+    0.035,
+    0.96,
+    "a",
+    va="center",
+    ha="center",
+    fontweight="bold",
+    transform=ax.transAxes,
+    fontsize=20
+)
+
+# ---------------
+# --- PANEL B ---
+# ---------------
+ax = ax_dict["B"]
+
+# --- Plot data ---
+fig3_utils.plot_phi_baz(ax, good, "#333333", "Good", "s")
+fig3_utils.plot_phi_baz(ax, fair, "#777777", "Fair", "d")
+ax.axhline(y=68, linewidth=1, linestyle="--", color="gray")
+
+# --- Configure axes and other panel details ---
+ax.set_xlim([0, 360])
+xtickrange = np.arange(0, 361, 60)
+ax.set_xticks(xtickrange)
+ax.set_xticklabels([])
+ax.xaxis.set_minor_locator(MultipleLocator(5))
+
+ax.set_ylim([0, 180])
+ytickrange = np.arange(0, 181, 45)
+ax.set_yticks(ytickrange)
+ax.set_yticklabels(ytickrange)
+ax.yaxis.set_minor_locator(MultipleLocator(5))
+ax.set_ylabel("\u03C6, °")
+ax.yaxis.set_label_position("right")
+ax.yaxis.tick_right()
+
+# --- Add panel label ---
+ax.text(
+    0.035,
+    0.92,
+    "b",
+    va="center",
+    ha="center",
+    fontweight="bold",
+    transform=ax.transAxes,
+    fontsize=20
+)
+
+# ---------------
+# --- PANEL C ---
+# ---------------
 ax = ax_dict["C"]
+
 # --- Plot splitting intensity best fit ---
 # Unpack variables from file
 fast_direction, delay_time, fast_err, delay_err = si_results.loc[0]
@@ -113,7 +171,7 @@ for vals in zip(fit_min1, fit_min2, fit_max1, fit_max2):
     fit_min.append(min(vals))
     fit_max.append(max(vals))
 
-# Plot
+# --- Plot data ---
 ax.plot(x, best_fit, label="SVD", color="black", linewidth=1.5, linestyle="--")
 ax.fill_between(x, fit_min, fit_max, color="black", alpha=0.05)
 
@@ -122,37 +180,30 @@ fig3_utils.plot_results_scatter(ax, null_results, "#dddddd", "null", "o")
 fig3_utils.plot_results_scatter(ax, average_results, "#777777", "fair", "d")
 fig3_utils.plot_results_scatter(ax, good_results, "#333333", "good", "s")
 
-# --- Configure plot details ---
-ax.set_ylabel("Splitting intensity")
-ax.set_xlim([0, 360])
-ax.set_ylim([-1, 1])
-ax.yaxis.set_minor_locator(MultipleLocator(0.125))
-xtickrange = np.arange(0, 361, 60)
-ax.set_xticks(xtickrange)
-ax.set_xticklabels([])
-ax.xaxis.set_minor_locator(MultipleLocator(5))
-ax.yaxis.set_label_position("right")
-ax.yaxis.tick_right()
-
-ax = ax_dict["B"]
-fig3_utils.plot_phi_baz(ax, good, "#333333", "Good", "s")
-fig3_utils.plot_phi_baz(ax, fair, "#777777", "Fair", "d")
-
-ax.set_ylim([0, 180])
-ytickrange = np.arange(0, 181, 45)
-ax.set_yticks(ytickrange)
-ax.set_yticklabels(ytickrange)
-ax.yaxis.set_minor_locator(MultipleLocator(5))
-ax.set_ylabel("\u03C6, °")
-
+# --- Configure axes and other panel details ---
 ax.set_xlim([0, 360])
 ax.set_xticks(xtickrange)
 ax.set_xticklabels(xtickrange)
-ax.xaxis.set_minor_locator(MultipleLocator(5))
 ax.set_xlabel("Backazimuth, °")
-ax.axhline(y=68, linewidth=1, linestyle="--", color="gray")
+
+ax.set_ylabel("Splitting intensity")
+ax.set_ylim([-1, 1])
+ax.yaxis.set_minor_locator(MultipleLocator(0.125))
+ax.xaxis.set_minor_locator(MultipleLocator(5))
 ax.yaxis.set_label_position("right")
 ax.yaxis.tick_right()
+
+# --- Add panel label ---
+ax.text(
+    0.035,
+    0.92,
+    "c",
+    va="center",
+    ha="center",
+    fontweight="bold",
+    transform=ax.transAxes,
+    fontsize=20
+)
 
 # --- Save figure ---
 if not (pathlib.Path.cwd() / "plots").exists():

@@ -1,3 +1,3 @@
-mkdir $PWD/gmt_datafiles/grd
+mkdir -p $PWD/gmt_datafiles/grd
 gmt grdcut @earth_relief_03s -R112.5/122.5/4.0/9.0 -Ggmt_datafiles/grd/borneo_03s.grd
 gmt grdgradient gmt_datafiles/grd/borneo_03s.grd -Ggmt_datafiles/grd/borneo_03sI.grd -V -A0/270
