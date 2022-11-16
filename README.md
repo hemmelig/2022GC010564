@@ -3,7 +3,7 @@ Data and code to accompany:
 
 Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D., Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric anisotropy at post-subduction continental margins: New insight from XKS splitting analysis in northern Borneo. Geochemistry, Geophysics, Geosystems, 23, e2022GC010564. 
 
-Open-access paper: [![DOI](https://img.shields.io/badge/G-cubed-10.1029/2022GC010564-blue)](https://doi.org/10.1029/2022GC010564)
+Open-access paper: [![DOI](https://img.shields.io/badge/GGG-10.1029/2022GC010564-blue)](https://doi.org/10.1029/2022GC010564)
 
 Supplementary datafiles: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6461787.svg)](https://doi.org/10.5281/zenodo.6461787)
 
