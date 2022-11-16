@@ -1,11 +1,9 @@
 # Supplementary analysis/visualisation code
-Data and code required to reproduce the visualisations presented in the manuscript:
+Data and code to accompany:
 
-Lithospheric anisotropy characterises the post-subduction setting of northern Borneo: new results from XKS splitting analysis
+Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D., Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric anisotropy at post-subduction continental margins: New insight from XKS splitting analysis in northern Borneo. Geochemistry, Geophysics, Geosystems, 23, e2022GC010564. 
 
-Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D., Cornwell, D.G., Tongkul, F.
-
-Pre-print: [![DOI](https://img.shields.io/badge/EarthArxiv-10.31223/X57H14-blue)](https://doi.org/10.31223/X57H14)
+Open-access paper: [![DOI](https://img.shields.io/badge/G-cubed-10.1029/2022GC010564-blue)](https://doi.org/10.1029/2022GC010564)
 
 Supplementary datafiles: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6461787.svg)](https://doi.org/10.5281/zenodo.6461787)
 
@@ -15,8 +13,8 @@ Analysis and visualisation: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.
 1. Clone this repository and navigate to it, e.g.:
 
 ```
-git clone https://github.com/hemmelig/g-cubed-manuscript
-cd g-cubed-manuscript
+git clone https://github.com/hemmelig/2022GC010564
+cd 2022GC010564
 ```
 
 2. Install the packages listed in the environment.yml file, either manually, or using (for example) conda:
@@ -25,7 +23,7 @@ cd g-cubed-manuscript
 conda env create
 ```
 
-3. Add `splitracer_summary.mplstyle` (a matplotlib stylesheet) to your `mpl_configdir` (usually found at `~/.config/matplotlib`)
+3. Add `splitracer_summary.mplstyle` and `publication.mplstyle` (matplotlib stylesheets) to your `mpl_configdir` (usually found at `~/.config/matplotlib`)
 
 4. Optional: Install Helvetica font for Matplotlib
 
