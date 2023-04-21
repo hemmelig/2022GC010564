@@ -21,11 +21,14 @@ import pandas as pd
 
 import functions as fig3_utils
 
+
 try:
     plt.style.use("2022GC010564")
 except OSError:
-    warnings.warn("You have not added the 'publication.mplstyle' stylesheet to your"
-                  " matplotlib config - continuing with matplotlib defaults.")
+    warnings.warn(
+        "You have not added the 'publication.mplstyle' stylesheet to your"
+        " matplotlib config - continuing with matplotlib defaults."
+    )
 mpl.rcParams["font.family"] = "Helvetica"
 
 # Read in data
@@ -35,10 +38,14 @@ dts, phis = energy_grid[0].values, energy_grid[1].values
 Z = energy_grid[2].values.reshape(len(set(dts)), len(set(phis)))
 diff_dt = (dts[-1] - dts[0]) / (len(dts) * 2)
 diff_phi = (phis[-1] - phis[0]) / (len(phis) * 2)
-X, Y = np.mgrid[dts[0]-diff_dt:dts[-1]+diff_dt:Z.shape[0]*1j,
-                phis[0]-diff_phi:phis[-1]+diff_phi:Z.shape[1]*1j] 
+X, Y = np.mgrid[
+    dts[0] - diff_dt : dts[-1] + diff_dt : Z.shape[0] * 1j,
+    phis[0] - diff_phi : phis[-1] + diff_phi : Z.shape[1] * 1j,
+]
 
-phi, dt, minerr_phi, maxerr_phi, minerr_dt, maxerr_dt, _, _, conf_level = results[1].values
+phi, dt, minerr_phi, maxerr_phi, minerr_dt, maxerr_dt, _, _, conf_level = results[
+    1
+].values
 
 fast_err = np.mean([np.abs(phi - err) for err in [minerr_phi, maxerr_phi]])
 delay_err = np.mean([np.abs(dt - err) for err in [minerr_dt, maxerr_dt]])
@@ -57,14 +64,15 @@ splitting_results = splitting_results[splitting_results["category"] != "poor"]
 splitting_results = splitting_results[splitting_results["err_phi_min"] != np.inf]
 splitting_results = splitting_results[splitting_results["err_phi_max"] != np.inf]
 
-splitting_results["phi"] = [phi - 180 if phi > 90 else phi
-                            for phi in splitting_results["phi"].values]
-splitting_results["err_phi_max"] = [phi + 180 if phi < 0 else phi
-                                    for phi
-                                    in splitting_results["err_phi_max"].values]
-splitting_results["err_phi_min"] = [phi - 180 if phi > 90 else phi
-                                    for phi
-                                    in splitting_results["err_phi_min"].values]
+splitting_results["phi"] = [
+    phi - 180 if phi > 90 else phi for phi in splitting_results["phi"].values
+]
+splitting_results["err_phi_max"] = [
+    phi + 180 if phi < 0 else phi for phi in splitting_results["err_phi_max"].values
+]
+splitting_results["err_phi_min"] = [
+    phi - 180 if phi > 90 else phi for phi in splitting_results["err_phi_min"].values
+]
 
 good = splitting_results[splitting_results["category"] == "good"]
 fair = splitting_results[splitting_results["category"] == "average"]
@@ -86,7 +94,15 @@ ax = ax_dict["A"]
 # --- Plot data ---
 ax.pcolormesh(X, Y, Z, edgecolors="face", cmap="inferno_r", shading="gouraud")
 ax.contour(X, Y, Z, 9, colors="#cccccc")
-ax.contour(X, Y, Z, [conf_level,], colors="k")
+ax.contour(
+    X,
+    Y,
+    Z,
+    [
+        conf_level,
+    ],
+    colors="k",
+)
 ax.scatter(dt, phi, marker="+", s=200, label="Best-fitting (\u03C6, \u03B4t)")
 
 # --- Configure axes and other panel details ---
@@ -108,7 +124,7 @@ ax.text(
     ha="center",
     fontweight="bold",
     transform=ax.transAxes,
-    fontsize=20
+    fontsize=20,
 )
 
 # ---------------
@@ -146,7 +162,7 @@ ax.text(
     ha="center",
     fontweight="bold",
     transform=ax.transAxes,
-    fontsize=20
+    fontsize=20,
 )
 
 # ---------------
@@ -161,10 +177,18 @@ fast_direction, delay_time, fast_err, delay_err = si_results.loc[0]
 # Create splitting intensity function and uncertainties
 x = np.arange(0, 360, 0.01)
 best_fit = delay_time * np.sin(np.pi * (x - fast_direction) / 90)
-fit_min1 = (delay_time - delay_err) * np.sin(np.pi * (x - (fast_direction - fast_err)) / 90)
-fit_max1 = (delay_time + delay_err) * np.sin(np.pi * (x - (fast_direction + fast_err)) / 90)
-fit_min2 = (delay_time - delay_err) * np.sin(np.pi * (x - (fast_direction + fast_err)) / 90)
-fit_max2 = (delay_time + delay_err) * np.sin(np.pi * (x - (fast_direction - fast_err)) / 90)
+fit_min1 = (delay_time - delay_err) * np.sin(
+    np.pi * (x - (fast_direction - fast_err)) / 90
+)
+fit_max1 = (delay_time + delay_err) * np.sin(
+    np.pi * (x - (fast_direction + fast_err)) / 90
+)
+fit_min2 = (delay_time - delay_err) * np.sin(
+    np.pi * (x - (fast_direction + fast_err)) / 90
+)
+fit_max2 = (delay_time + delay_err) * np.sin(
+    np.pi * (x - (fast_direction - fast_err)) / 90
+)
 
 fit_min, fit_max = [], []
 for vals in zip(fit_min1, fit_min2, fit_max1, fit_max2):
@@ -202,7 +226,7 @@ ax.text(
     ha="center",
     fontweight="bold",
     transform=ax.transAxes,
-    fontsize=20
+    fontsize=20,
 )
 
 # --- Save figure ---
