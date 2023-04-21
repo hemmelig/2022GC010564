@@ -17,17 +17,18 @@ git clone https://github.com/hemmelig/2022GC010564
 cd 2022GC010564
 ```
 
-2. Install the packages listed in the environment.yml file, either manually, or using (for example) conda:
+2. Install the packages listed in the environment.yml file—either manually, or using (for example) conda—then activate the new environment:
 
 ```
 conda env create
+conda activate Bacon2022_2022GC010564
 ```
 
-3. Add `2022GC010564.mplstyle` (a matplotlib stylesheets) to your `mpl_configdir` (usually found at `~/.config/matplotlib`)
+3. Add `2022GC010564.mplstyle` (a matplotlib stylesheet) to your `mpl_configdir` (usually found at `~/.config/matplotlib/stylelib` or `~/.matplotlib/stylelib`)
 
 4. Optional: Install Helvetica font for Matplotlib
 
-5. Run `download_grd_datafiles.gmt` script to download the DEM data used in Figure 1:
+5. Move into the `figures` directory and run `download_grd_datafiles.gmt` script to download the DEM data used in Figure 1:
 
 ```
 cd figures

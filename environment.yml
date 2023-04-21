@@ -1,4 +1,4 @@
-name: epsl_manuscript_CABacon
+name: Bacon2022_2022GC010564
 channels:
   - conda-forge
   - defaults
