@@ -18,8 +18,10 @@ import pandas as pd
 try:
     plt.style.use("2022GC010564")
 except OSError:
-    warnings.warn("You have not added the '2022GC010564.mplstyle' stylesheet to your"
-                  " matplotlib config - continuing with matplotlib defaults.")
+    warnings.warn(
+        "You have not added the '2022GC010564.mplstyle' stylesheet to your"
+        " matplotlib config - continuing with matplotlib defaults."
+    )
 mpl.rcParams["font.family"] = "Helvetica"
 
 
@@ -47,8 +49,9 @@ def read_energy_grid(path, event):
 
     """
 
-    return pd.read_csv(path / f"event{event}_energy_grid.txt",
-                       delim_whitespace=True, header=None).values.T
+    return pd.read_csv(
+        path / f"event{event}_energy_grid.txt", delim_whitespace=True, header=None
+    ).values.T
 
 
 def read_hodograms(path, event):
@@ -72,10 +75,12 @@ def read_hodograms(path, event):
 
     """
 
-    original_pm = pd.read_csv(path / f"event{event}_RT_orig_pm.txt",
-                              delim_whitespace=True, header=None)
-    corrected_pm = pd.read_csv(path / f"event{event}_RT_corr_pm.txt",
-                               delim_whitespace=True, header=None)
+    original_pm = pd.read_csv(
+        path / f"event{event}_RT_orig_pm.txt", delim_whitespace=True, header=None
+    )
+    corrected_pm = pd.read_csv(
+        path / f"event{event}_RT_corr_pm.txt", delim_whitespace=True, header=None
+    )
 
     return original_pm.values.T, corrected_pm.values.T
 
@@ -97,10 +102,11 @@ def read_waveforms(path, event):
        Waveform data in the form of a Stream of Traces.
 
     """
-    
-    times, n, e = pd.read_csv(path / f"event{event}_tiNE.txt",
-                              delim_whitespace=True, header=None).values.T
-    
+
+    times, n, e = pd.read_csv(
+        path / f"event{event}_tiNE.txt", delim_whitespace=True, header=None
+    ).values.T
+
     st = obspy.Stream()
     for comp, data in zip("NE", [n, e]):
         tr = obspy.Trace()
@@ -130,9 +136,10 @@ def read_rotated_waveforms(path, event):
         data.
 
     """
-    
-    times, r, t = pd.read_csv(path / f"event{event}_tiRT.txt",
-                          delim_whitespace=True, header=None).values.T
+
+    times, r, t = pd.read_csv(
+        path / f"event{event}_tiRT.txt", delim_whitespace=True, header=None
+    ).values.T
 
     st = obspy.Stream()
     for comp, data in zip("RT", [r, t]):
@@ -185,10 +192,9 @@ def plot_summary(path, event, dt=0.0, phi=0.0, null=False):
     # --- Energy grid ---
     dts, phis, vals = read_energy_grid(path, event)
     _energy_grid(fig.axes[4], dts, phis, vals, "e")
-    
+
     if not null:
-        fig.axes[4].scatter(dt, phi, marker="+",
-                            label="Best-fitting (\u03C6, \u03B4t)")
+        fig.axes[4].scatter(dt, phi, marker="+", label="Best-fitting (\u03C6, \u03B4t)")
 
     plt.savefig("figureS5.pdf", dpi=400, bbox_inches="tight")
 
@@ -196,7 +202,7 @@ def plot_summary(path, event, dt=0.0, phi=0.0, null=False):
 def _build_grid():
     """
     Utility function to construct the grid of panels in the figure.
-    
+
     Axes are:
         0: Filtered waveforms
         1: Parallel/Perpendicular waveforms before and after correction
@@ -211,10 +217,7 @@ def _build_grid():
     """
 
     fig = plt.figure(figsize=(30, 12))
-    grid_specs = {"nrows": 6,
-                  "ncols": 15,
-                  "wspace": 2,
-                  "hspace": 2}
+    grid_specs = {"nrows": 6, "ncols": 15, "wspace": 2, "hspace": 2}
 
     for i in [0, 3]:
         spec = GridSpec(**grid_specs).new_subplotspec((i, 0), colspan=6, rowspan=3)
@@ -247,10 +250,10 @@ def _filtered_waveforms(ax, st, letter):
     for tr in st:
         tr.taper(0.15)
 
-    norm = 1.5*max([max(abs(tr.data)) for tr in st])
+    norm = 1.5 * max([max(abs(tr.data)) for tr in st])
     for i, comp in enumerate("EN"):
         tr = st.select(component=comp)[0]
-        ax.plot(tr.times(), tr.data / norm + 2*i, linewidth=1, zorder=2)
+        ax.plot(tr.times(), tr.data / norm + 2 * i, linewidth=1, zorder=2)
 
     ax.vlines(50, -1.5, 3.5, linewidth=0.8, ls="--", color="k", alpha=0.6)
 
@@ -260,8 +263,16 @@ def _filtered_waveforms(ax, st, letter):
     ax.set_yticklabels("EN")
     ax.set_xlabel("Seconds")
     ax.set_ylabel("Component")
-    ax.text(0.035, 0.94, f"({letter})", va="center", ha="center",
-            fontweight="bold", transform=ax.transAxes, fontsize=18)
+    ax.text(
+        0.035,
+        0.94,
+        f"({letter})",
+        va="center",
+        ha="center",
+        fontweight="bold",
+        transform=ax.transAxes,
+        fontsize=18,
+    )
 
 
 def _rotated_waveforms(ax, st, letter):
@@ -283,10 +294,10 @@ def _rotated_waveforms(ax, st, letter):
     for tr in st:
         tr.taper(0.15)
 
-    norm = 1.5*max([max(abs(tr.data)) for tr in st])
+    norm = 1.5 * max([max(abs(tr.data)) for tr in st])
     for i, comp in enumerate("TR"):
         tr = st.select(component=comp)[0]
-        ax.plot(tr.times(), tr.data / norm + 2*i, linewidth=1, zorder=2)
+        ax.plot(tr.times(), tr.data / norm + 2 * i, linewidth=1, zorder=2)
 
     ax.vlines(50, -1.5, 3.5, linewidth=0.8, ls="--", color="k", alpha=0.6)
 
@@ -296,14 +307,22 @@ def _rotated_waveforms(ax, st, letter):
     ax.set_yticklabels("TR")
     ax.set_xlabel("Seconds")
     ax.set_ylabel("Component")
-    ax.text(0.035, 0.94, f"({letter})", va="center", ha="center",
-            fontweight="bold", transform=ax.transAxes, fontsize=18)
+    ax.text(
+        0.035,
+        0.94,
+        f"({letter})",
+        va="center",
+        ha="center",
+        fontweight="bold",
+        transform=ax.transAxes,
+        fontsize=18,
+    )
 
 
 def _hodogram(ax, x, y, letter):
     """
     Plot the fast and slow components.
-    
+
     Parameters
     ----------
     ax : matplotlib.pyplot.Axes object
@@ -316,7 +335,7 @@ def _hodogram(ax, x, y, letter):
         Panel identifier.
 
     """
-    
+
     ax.plot(x, y, linewidth=1, color="k", alpha=0.9)
     ax.set_xlim([-1, 1])
     ax.set_xlabel("Transverse")
@@ -324,8 +343,16 @@ def _hodogram(ax, x, y, letter):
     ax.set_ylim([-1, 1])
     ax.set_ylabel("Radial")
     ax.set_yticklabels([])
-    ax.text(0.07, 0.94, f"({letter})", va="center", ha="center",
-            fontweight="bold", transform=ax.transAxes, fontsize=18)
+    ax.text(
+        0.07,
+        0.94,
+        f"({letter})",
+        va="center",
+        ha="center",
+        fontweight="bold",
+        transform=ax.transAxes,
+        fontsize=18,
+    )
 
 
 def _energy_grid(ax, dts, phis, vals, letter):
@@ -349,11 +376,9 @@ def _energy_grid(ax, dts, phis, vals, letter):
 
     # Parse into X, Y, and Z
     Z = vals.reshape(len(set(phis)), len(set(dts))).T
-    X, Y = np.mgrid[0.05:3.95:Z.shape[0]*1j,
-                    -90:90:Z.shape[1]*1j]
+    X, Y = np.mgrid[0.05 : 3.95 : Z.shape[0] * 1j, -90 : 90 : Z.shape[1] * 1j]
 
-    ax.pcolormesh(X, Y, Z, edgecolors="face",
-                  cmap="inferno_r")
+    ax.pcolormesh(X, Y, Z, edgecolors="face", cmap="inferno_r")
     ax.contour(X, Y, Z, 9, colors="#cccccc")
 
     ax.set_ylabel("Fast orientation, °")
@@ -362,5 +387,13 @@ def _energy_grid(ax, dts, phis, vals, letter):
     ax.set_ylim([-90, 90])
     ax.set_yticks(range(-90, 91, 15))
     ax.set_yticklabels(range(-90, 91, 15))
-    ax.text(0.035, 0.97, f"({letter})", va="center", ha="center",
-            fontweight="bold", transform=ax.transAxes, fontsize=18)
+    ax.text(
+        0.035,
+        0.97,
+        f"({letter})",
+        va="center",
+        ha="center",
+        fontweight="bold",
+        transform=ax.transAxes,
+        fontsize=18,
+    )

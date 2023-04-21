@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Short script to evaluate the 100-km depth pierce points for the measurements
-presented in the manuscript:
+presented in:
 
-    Lithospheric anisotropy characterises the post-subduction setting of
-    northern Borneo: new results from XKS splitting analysis
-    Bacon, C.A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
-    Cornwell, D.G., Tongkul, F.
+    Bacon, C. A., Rawlinson, N., Pilia, S., Gilligan, A., Wehner, D.,
+    Cornwell, D. G., & Tongkul, F. (2022). The signature of lithospheric
+    anisotropy at post-subduction continental margins: New insight from
+    XKS splitting analysis in northern Borneo. Geochemistry, Geophysics,
+    Geosystems, 23, e2022GC010564. https://doi.org/10.1029/2022GC010564
 
 """
 
@@ -28,7 +29,7 @@ def parse_pierce_point_from_arrival(arrival: str) -> Tuple[float, float]:
     Returns
     -------
     pierce_lon, pierce_lat: Longitude and latitude of the pierce point.
-    
+
     """
 
     # Parse out 100 km pierce points for each phase path
@@ -56,7 +57,6 @@ def parse_pierce_point_from_arrival(arrival: str) -> Tuple[float, float]:
 
 
 def main():
-
     measurements = pd.read_csv(
         "../data/splitting_results/supp_file_6_all_splitting_measurements.csv"
     )
@@ -75,7 +75,7 @@ def main():
 
         # Get station information
         station_name = measurement.station
-        station_name = station_name if station_name != "MALB" else "SBB5a"        
+        station_name = station_name if station_name != "MALB" else "SBB5a"
         station_info = stations[stations[1] == station_name].values[0]
         receiver_lon, receiver_lat = station_info[3], station_info[2]
 
@@ -88,16 +88,11 @@ def main():
             f"-sta {receiver_lat} {receiver_lon} "
             f"-h {source_depth} -ph {phase}, -pierce 100.0"
         )
-        arrival = subprocess.check_output(
-            cmd,
-            shell=True,
-            universal_newlines=True
-        )
+        arrival = subprocess.check_output(cmd, shell=True, universal_newlines=True)
 
         pierce_lon, pierce_lat = parse_pierce_point_from_arrival(arrival)
         pierce_lons.append(pierce_lon)
         pierce_lats.append(pierce_lat)
-        print(pierce_lon, pierce_lat)
 
     measurements["pierce_lon"] = pierce_lons
     measurements["pierce_lat"] = pierce_lats

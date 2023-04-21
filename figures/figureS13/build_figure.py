@@ -52,7 +52,7 @@ ax.text(
     fontsize=16,
     va="center",
     ha="center",
-    transform=ax.transAxes
+    transform=ax.transAxes,
 )
 
 plt.savefig("figureS13.pdf", bbox_inches="tight")
